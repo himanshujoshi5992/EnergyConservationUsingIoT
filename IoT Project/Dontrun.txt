@@ -1,0 +1,62 @@
+#!/usr/bin/python
+
+import MySQLdb
+import time as t
+from datetime import datetime
+# Open database connection
+db = MySQLdb.connect("localhost","root","IIITB@123.","iotproject" )
+
+# prepare a cursor object using cursor() method
+cursor = db.cursor()
+while True:
+  wifi_select = "SELECT * FROM wifimote"
+  wifi_delete = "DELETE FROM wifimote"
+  rpi_select = "SELECT * FROM rpi"
+  rpi_delete = "DELETE FROM rpi"
+  try:
+      # Execute the SQL command
+      wmotefile = open("wmotedata.csv", "w")
+      rpifile = open("rpidata.csv", "w")
+      cursor.execute(wifi_select)
+      # Fetch all the rows in a list of lists.
+      results = cursor.fetchall()
+      
+      for row in results:
+        light = row[0]
+        pressure = row[1]
+        proximity = row[2]
+        humidity = row[3]
+        temperature = row[4]
+        ip = row[5]
+        date = row[6]
+        time = row[7]
+        # Now print fetched result
+        print(light, pressure, proximity, humidity, temperature, ip, date, time)
+        wifimote = "%d,%f,%d,%s,%s,%s,%s,%s\n" % (light, pressure, proximity, humidity, temperature, ip, date, time)
+        wmotefile.write(wifimote)
+
+      cursor.execute(wifi_delete)
+      db.commit()  
+      cursor.execute(rpi_select)
+      results = cursor.fetchall()
+      
+      for row in results:
+        sound = row[0]
+        pir = row[1]
+        date = row[2]
+        #timestamp = date.split()
+        #dat = timestamp[0]
+        #time = timestamp[1]
+        # Now print fetched result
+        print(sound, pir, date)
+        raspi = "%d,%d,%s\n" % (sound, pir, date)
+        rpifile.write(raspi)    
+
+      cursor.execute(rpi_delete)
+      db.commit()
+  except:
+     print ("Error: unable to fecth data")
+
+  t.sleep(300)
+# disconnect from server
+db.close()
